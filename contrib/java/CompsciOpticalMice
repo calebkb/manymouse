@@ -1,0 +1,120 @@
+/*
+ * Test app to demonstrate usage of the Java bindings.
+ *
+ * Please see the file LICENSE.txt in the source's root directory.
+ *
+ *  This file written by Ryan C. Gordon.
+ */
+
+public class CompsciOpticalMice
+{
+    public int mouseDistance = 0;
+    public static void main(String args[])
+    {
+        int mice = ManyMouse.Init();
+        System.out.println("ManyMouse.Init() reported " + mice + ".");
+        for (int i = 0; i < mice; i++)
+            System.out.println("Mouse #" + i + ": " + ManyMouse.DeviceName(i));
+        System.out.println();
+
+        // Allocate one that PollEvent fills in so we aren't spamming the
+        //  memory manager with throwaway objects for each event.
+        ManyMouseEvent event = new ManyMouseEvent();
+        retrieve();
+        ManyMouse.Quit();
+    } // Main
+    
+    public static void retrieve(){
+       int m1TotXMov = mouseDistance/2;
+       int m2TotXMov = -mouseDistance/2;
+       int m1TotYMov = 0;
+       int m2TotYMov = 0;
+       int centerXPos = 0;
+       int centerYPos = 0;
+       while (mice > 0)  // report events until process is killed.
+        {
+            if (!ManyMouse.PollEvent(event))
+                try { Thread.sleep(100); } catch (InterruptedException e) {}
+            else
+            {
+                System.out.print("Mouse #");
+                System.out.print(event.device);
+                System.out.print(" ");
+
+                switch (event.type)
+                {
+                    case ManyMouseEvent.ABSMOTION:
+                        System.out.print("absolute motion ");
+                        if (event.item == 0) // x axis
+                            System.out.print("X axis ");
+                        else if (event.item == 1) // y axis
+                            System.out.print("Y axis ");
+                        else
+                            System.out.print("? axis ");  // error?
+                        System.out.print(event.value);
+                        break;
+
+                    case ManyMouseEvent.RELMOTION:
+                        if (event.item == 0){ // x axis
+                            if(event.device == 0;
+                               m1TotXMov += event.value;
+                            else if(event.device == 1)
+                               m2TotXMov += event.value;
+                        }
+                        else if (event.item == 1){ // y axis
+                            if(event.device == 0;
+                               m1TotYMov += event.value;
+                            else if(event.device == 1)
+                               m2TotYMov += event.value;
+                        }
+                        else
+                            System.out.print("? axis ");  // error?
+                        centerXPos = (m1TotXMov + m2TotXMov)/2;
+                        centerYPos = (m1TotYMov + m2TotYMov)/2;
+                        System.out.print(centerXPos + ", " + centerYPos);
+                        break;
+
+                    case ManyMouseEvent.BUTTON:
+                        System.out.print("mouse button ");
+                        System.out.print(event.item);
+                        if (event.value == 0)
+                            System.out.print(" up");
+                        else
+                            System.out.print(" down");
+                        break;
+
+                    case ManyMouseEvent.SCROLL:
+                        System.out.print("scroll wheel ");
+                        if (event.item == 0)
+                        {
+                            if (event.value > 0)
+                                System.out.print("up");
+                            else
+                                System.out.print("down");
+                        }
+                        else
+                        {
+                            if (event.value > 0)
+                                System.out.print("right");
+                            else
+                                System.out.print("left");
+                        }
+                        break;
+
+                    case ManyMouseEvent.DISCONNECT:
+                        System.out.print("disconnect");
+                        mice--;
+                        break;
+
+                    default:
+                        System.out.print("Unknown event: ");
+                        System.out.print(event.type);
+                        break;
+                } // switch
+                System.out.println();
+            } // if
+        } // while
+    }
+} // TestManyMouse
+
+// end of TestManyMouse.java ...
